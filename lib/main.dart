@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:weather_riverpod_demo/city.dart';
 import 'package:weather_riverpod_demo/service.dart';
@@ -12,11 +13,10 @@ class MainApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = ref.watch(themeProvider);
+    final theme = ref.watch(themeNotifierProvider);
 
     return MaterialApp(
       theme: theme,
-      debugShowCheckedModeBanner: false,
       home: const HomePage(),
     );
   }
@@ -31,15 +31,34 @@ class HomePage extends ConsumerWidget {
     final selectedCity = ref.watch(currentCityProvider);
 
     return Scaffold(
-        appBar: AppBar(
-          title: const Text("Weather App"),
-          centerTitle: true,
+      appBar: AppBar(
+        title: const Text("Weather App"),
+        centerTitle: true,
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Colors.blueAccent,
+            width: 3,
+          ),
         ),
-        body: Padding(
+        child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
-              if (selectedCity != null)
+              if (selectedCity == null)
+                const Expanded(
+                  child: Center(
+                    child: Card(
+                      elevation: 2,
+                      child: Text(
+                        "🤷‍♀️", // Shrug emoji
+                        style: TextStyle(fontSize: 100),
+                      ),
+                    ),
+                  ),
+                )
+              else if (selectedCity != null)
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Center(
@@ -49,7 +68,6 @@ class HomePage extends ConsumerWidget {
                         child: Text(
                           emoji,
                           style: const TextStyle(fontSize: 100),
-                          textAlign: TextAlign.center,
                         ),
                       ),
                       error: (error, stack) => const Text(
@@ -81,20 +99,29 @@ class HomePage extends ConsumerWidget {
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: ListTile(
+                          leading: Icon(Icons.location_city,
+                              color: isSelectedCity
+                                  ? Colors.blueAccent
+                                  : Colors.black),
                           title: Text(
                             city.name,
-                            style: TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold,
+                            style: GoogleFonts.poppins(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
                               color: isSelectedCity
                                   ? Colors.blueAccent
                                   : Colors.black,
+                              shadows: isSelectedCity
+                                  ? [
+                                      Shadow(
+                                        blurRadius: 4.0,
+                                        color: Colors.grey.withOpacity(0.5),
+                                        offset: Offset(2.0, 2.0),
+                                      ),
+                                    ]
+                                  : null,
                             ),
                           ),
-                          trailing: isSelectedCity
-                              ? const Icon(Icons.check,
-                                  color: Colors.blueAccent)
-                              : null,
                           tileColor:
                               isSelectedCity ? Colors.blue[100] : Colors.white,
                           shape: RoundedRectangleBorder(
@@ -102,7 +129,9 @@ class HomePage extends ConsumerWidget {
                           ),
                           onTap: () {
                             ref.read(currentCityProvider.notifier).state = city;
-                            ref.refresh(themeProvider);
+                            ref
+                                .read(themeNotifierProvider.notifier)
+                                .updateTheme(city); // Update the theme
                           },
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16.0,
@@ -116,7 +145,9 @@ class HomePage extends ConsumerWidget {
               ),
             ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 }
 
