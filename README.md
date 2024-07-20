@@ -1,3 +1,3 @@
 # weather_riverpod_demo
 
-A new Flutter project.
+flutter demo app for applying tiverpos state Provider and Future provider and using reactive theme
